@@ -26,6 +26,14 @@ pipeline {
             }
         }
 
+        stage('MVN SONARQUBE') {
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh 'mvn sonar:sonar'
+                }
+            }
+        }
+
         stage('Tests') {
             steps {
                 echo 'Tests skipped (no MySQL needed)'
@@ -39,4 +47,3 @@ pipeline {
         }
     }
 }
-
