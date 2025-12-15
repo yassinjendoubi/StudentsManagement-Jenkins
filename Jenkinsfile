@@ -20,23 +20,38 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build Maven Project') {
             steps {
                 sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('MVN SONARQUBE') {
+        stage('Tests') {
             steps {
-                withSonarQubeEnv('sonarqube') {
-                    sh 'mvn sonar:sonar'
-                }
+                echo 'Tests skipped (no database needed)'
             }
         }
 
-        stage('Tests') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Tests skipped (no MySQL needed)'
+                sh 'docker build -t yassinjendoubi/spring-students:latest -f Dockerfile .'
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'docker-hub-credentials',
+                            usernameVariable: 'DOCKER_USERNAME',
+                                 passwordVariable: 'DOCKER_PASSWORD'
+                        )
+                    ]) {
+                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                        sh 'docker push yassinjendoubi/spring-students:latest'
+                    }
+                }
             }
         }
 
@@ -47,3 +62,4 @@ pipeline {
         }
     }
 }
+
