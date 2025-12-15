@@ -26,19 +26,15 @@ pipeline {
             }
         }
 
-        stage('Tests') {
+        stage('SonarQube Analysis') {
             steps {
-                echo 'Tests skipped (no database needed)'
+                withSonarQubeEnv('sonarqube') {
+                    sh 'mvn sonar:sonar'
+                }
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t yassinjendoubi/spring-students:latest -f Dockerfile .'
-            }
-        }
-
-        stage('Push to Docker Hub') {
+        stage('Docker Build & Push') {
             steps {
                 script {
                     withCredentials([
@@ -48,8 +44,9 @@ pipeline {
                             passwordVariable: 'DOCKER_PASSWORD'
                         )
                     ]) {
+                        sh 'docker build -t yassinjendoubi/spring-students:1.0 .'
                         sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
-                        sh 'docker push yassinjendoubi/spring-students:latest'
+                        sh 'docker push yassinjendoubi/spring-students:1.0'
                     }
                 }
             }
@@ -62,4 +59,3 @@ pipeline {
         }
     }
 }
-
